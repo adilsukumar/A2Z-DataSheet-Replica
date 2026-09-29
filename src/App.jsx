@@ -40,6 +40,15 @@ const CodeforcesIcon = () => (
   </svg>
 );
 
+const RoadmapIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="7" height="7"></rect>
+    <rect x="14" y="3" width="7" height="7"></rect>
+    <rect x="14" y="14" width="7" height="7"></rect>
+    <rect x="3" y="14" width="7" height="7"></rect>
+  </svg>
+);
+
 // Map A2Z topics to Codeforces tags
 const getCFTag = (topic) => {
   const t = topic.toLowerCase();
@@ -57,7 +66,7 @@ const getCFTag = (topic) => {
 };
 
 function App() {
-  const [activeView, setActiveView] = useState('timeline');
+  const [activeView, setActiveView] = useState('roadmap');
   const [solved, setSolved] = useState(() => {
     const saved = localStorage.getItem('a2z-solved');
     return saved ? new Set(JSON.parse(saved)) : new Set();
@@ -100,16 +109,13 @@ function App() {
   // Calculate Today's Daily Plan
   const getDailyRecommendation = () => {
     for (const step of steps) {
-      // Filter out GFG globally for the timeline as requested
       const stepProblems = problems.filter(p => p.step === step.n && p.platform !== 'gfg');
       const stepTopics = groupProblemsByTopic(stepProblems);
       
       for (const [topic, tProblems] of Object.entries(stepTopics)) {
         const unsolved = tProblems.filter(p => !solved.has(p.id));
         if (unsolved.length > 0) {
-          // If a topic is big, take up to 3 Leetcode problems for today's practice
           const todayLeetcode = unsolved.slice(0, 3);
-          
           return { 
             step, 
             topic, 
@@ -167,6 +173,75 @@ function App() {
             </div>
           </div>
         ))}
+      </div>
+    );
+  };
+
+  const renderRoadmapView = () => {
+    // Calculate Stats
+    const allLeetcode = problems.filter(p => p.platform !== 'gfg');
+    const totalLc = allLeetcode.length;
+    const solvedArray = Array.from(solved);
+    const solvedLc = solvedArray.filter(id => !id.startsWith('cf-daily')).length;
+    const solvedCf = solvedArray.filter(id => id.startsWith('cf-daily')).length;
+
+    return (
+      <div className="animate-fade-in">
+        <div className="main-header">
+          <h2>Master Roadmap</h2>
+          <p>Your ultimate tracking dashboard for DSA interviews and Competitive Programming.</p>
+        </div>
+
+        <div className="roadmap-dashboard">
+          <div className="stat-widget">
+            <h4>DSA Readiness</h4>
+            <div className="stat-value">{Math.round((solvedLc / totalLc) * 100 || 0)}%</div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>LeetCode Mastered</p>
+          </div>
+          <div className="stat-widget">
+            <h4>CP Readiness</h4>
+            <div className="stat-value">{solvedCf}</div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>Codeforces Topics Solved</p>
+          </div>
+          <div className="stat-widget">
+            <h4>Total Solved</h4>
+            <div className="stat-value">{solvedLc + solvedCf}</div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>Problems Checked Off</p>
+          </div>
+        </div>
+
+        <div className="roadmap-grid">
+          {steps.map(step => {
+            const progress = getStepProgress(step.n);
+            if (progress.total === 0) return null;
+            
+            return (
+              <div 
+                key={step.n} 
+                className="roadmap-card"
+                onClick={() => setActiveView(step.n)}
+              >
+                <div className="roadmap-step-num">Step {step.n}</div>
+                <div className="roadmap-title">{step.title}</div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                  <span>Progress</span>
+                  <span>{progress.solvedCount} / {progress.total}</span>
+                </div>
+                
+                <div className="progress-bar-container" style={{ background: 'rgba(255,255,255,0.05)', height: '6px' }}>
+                  <div 
+                    className="progress-bar" 
+                    style={{ 
+                      width: `${(progress.solvedCount / progress.total) * 100}%`,
+                      background: progress.solvedCount === progress.total ? '#10b981' : 'linear-gradient(to right, #3b82f6, #a78bfa)'
+                    }}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -245,7 +320,6 @@ function App() {
 
   const renderStepView = (stepN) => {
     const activeStepMeta = steps.find(s => s.n === stepN);
-    // For regular view, we also filter out GFG as requested
     const activeProblems = problems.filter(p => p.step === stepN && p.platform !== 'gfg');
     const topicsMap = groupProblemsByTopic(activeProblems);
 
@@ -258,7 +332,6 @@ function App() {
 
         {Object.entries(topicsMap).map(([topic, topicProblems], index) => {
           const topicSolved = topicProblems.filter(p => solved.has(p.id)).length;
-          // Add a virtual Codeforces task for the topic in the list view too
           const cfId = `cf-daily-${topic.replace(/\s+/g, '-')}`;
           const isCfSolved = solved.has(cfId);
           
@@ -300,6 +373,20 @@ function App() {
         
         <div className="sidebar-content">
           <div 
+            className={`step-item timeline-btn ${activeView === 'roadmap' ? 'active' : ''}`}
+            onClick={() => setActiveView('roadmap')}
+            style={{ marginBottom: '8px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <RoadmapIcon />
+              <span style={{ fontWeight: '600', fontSize: '1rem' }}>Roadmap Overview</span>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Your Master Progress Dashboard
+            </p>
+          </div>
+
+          <div 
             className={`step-item timeline-btn ${activeView === 'timeline' ? 'active' : ''}`}
             onClick={() => setActiveView('timeline')}
           >
@@ -316,7 +403,6 @@ function App() {
 
           {steps.map(step => {
             const progress = getStepProgress(step.n);
-            // Ignore steps with 0 non-GFG problems
             if (progress.total === 0) return null;
             
             return (
@@ -343,7 +429,7 @@ function App() {
       </aside>
 
       <main className="main-content">
-        {activeView === 'timeline' ? renderTimelineView() : renderStepView(activeView)}
+        {activeView === 'roadmap' ? renderRoadmapView() : (activeView === 'timeline' ? renderTimelineView() : renderStepView(activeView))}
       </main>
     </>
   );
