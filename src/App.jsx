@@ -63,7 +63,8 @@ function App() {
     return saved ? new Set(JSON.parse(saved)) : new Set();
   });
 
-  const { steps, problems } = data;
+  const { problems } = data;
+  const steps = data.meta.steps || [];
 
   useEffect(() => {
     localStorage.setItem('a2z-solved', JSON.stringify(Array.from(solved)));
