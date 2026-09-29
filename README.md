@@ -1,21 +1,76 @@
-# My A2Z DSA Tracker Replica
+<div align="center">
 
-## Why I Built This
-I was strictly following the classic 18-step Striver's A2Z DSA Sheet, but a recent website redesign severely disrupted the original organized progression, explanations, and problem list. I struggled to continue my learning because the old structure with its beautiful progression of topics (Concepts -> Videos -> Articles -> Coding Platforms) was lost.
+# 🚀 Striver A2Z DSA Tracker Replica
 
-To fix this problem for myself (and anyone else facing it), I built my own **A2Z DataSheet Replica**. This project is inspired by community archives (like those from Shreyans1999 and geckguy) and perfectly restores the original 402+ problem curriculum, but with a brand-new, modern, dark-mode glassmorphic interface and localized progress tracking. No embedded IDEs, just the pure curriculum and links to LeetCode, CodeForces, and GeeksForGeeks.
+<img src="./src/assets/hero.png" alt="A2Z Tracker Dashboard" width="800" style="border-radius: 12px; margin: 20px 0;" />
 
-## Features
-- **Original A2Z Structure:** All classic 18 Steps properly ordered.
-- **Dynamic Daily Timeline:** Automatically suggests what topic/module to solve "Today" based on what you have already finished. If you miss a day, the timeline gracefully shifts so you never fall off the wagon!
-- **Direct Links:** One-click links to Striver's YouTube Videos, Articles, and coding platforms.
-- **Local Progress Tracking:** Everything is saved locally in your browser. 
-- **Premium Aesthetic:** Glassmorphic UI with vibrant gradients and smooth micro-animations.
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![LeetCode](https://img.shields.io/badge/-LeetCode-FFA116?style=for-the-badge&logo=LeetCode&logoColor=black)
+![Codeforces](https://img.shields.io/badge/Codeforces-445f9d?style=for-the-badge&logo=Codeforces&logoColor=white)
+![Vercel](https://img.shields.io/badge/vercel-%23000000.svg?style=for-the-badge&logo=vercel&logoColor=white)
 
-## Running Locally
-1. Clone this repository.
-2. Run `npm install`.
-3. Run `npm run dev`.
-4. Open `http://localhost:5173`.
+*A premium, beautifully designed, and distraction-free tracker for the ultimate DSA curriculum.*
 
-Enjoy grinding DSA again!
+</div>
+
+---
+
+## 🎯 What is the Striver A2Z DSA Sheet?
+
+The **A2Z DSA Sheet** (originally created by Raj Vikramaditya, a.k.a Striver) is one of the most popular and highly structured curriculums for mastering Data Structures and Algorithms. It is broken down into **18 meticulously ordered Steps** containing over 400 carefully curated problems. 
+
+The sheet takes you from extreme basics (like "Learn Basic Maths") all the way to advanced interview concepts like Dynamic Programming, Tries, and Advanced Graphs.
+
+## 🛠 Why I Built This Replica (The Problem)
+
+I was religiously following the classic 18-step A2Z Sheet to prepare for interviews. However, a recent website redesign heavily disrupted the learning experience. The beautiful, straightforward progression of **Concept ➔ Video ➔ Article ➔ Practice Platform** was replaced, and the original problem structure became chaotic with the addition of embedded online IDEs and shuffled lists.
+
+I couldn't focus. I just wanted my raw roadmap back.
+
+So, I built my own **A2Z DataSheet Replica** to fix this. I scraped community archives to restore the pristine **402-problem, 18-step curriculum**. I stripped away the built-in IDEs, removed GeeksForGeeks distractions, and exclusively mapped the curriculum to **LeetCode** and **Codeforces**.
+
+## ✨ Features of My Tracker
+
+### 📅 The Auto-Shifting Daily Plan
+No more rigid calendars! The tracker dynamically analyzes your progress and generates a **Daily Plan** for you:
+- **Smart Queueing:** If you are on a massive topic (like Arrays), the Daily Plan will automatically queue up to **3 LeetCode problems** for the day to build muscle memory.
+- **Graceful Pausing:** Missed a day? No problem! The timeline doesn't break; it simply pauses and waits for you. Your unfinished topic will remain your "Today" goal until you beat it.
+
+### 🏆 Exclusive Codeforces Integration
+To build pure problem-solving logic and speed, I implemented a custom tag-mapping algorithm. Every single topic in the curriculum dynamically generates an objective to solve **1 Codeforces Problem** related to that exact concept.
+
+### 🎨 Premium Glassmorphic Aesthetic
+The entire UI is custom-built with Vanilla CSS (no Tailwind needed!). It features a stunning **Dark Mode**, frosted glass elements, smooth micro-animations, color-coded difficulty badges, and vibrant gradients.
+
+### 💾 100% Local Progress Tracking
+Your progress is fully private and saved directly to your browser's `localStorage`. No databases, no login screens, no hassle.
+
+---
+
+## 🚀 Run It & Deploy It
+
+### Run Locally
+Want to use it yourself? You can clone it and run it locally in seconds:
+
+```bash
+git clone https://github.com/adilsukumar/A2Z-DataSheet-Replica.git
+cd A2Z-DataSheet-Replica
+npm install
+npm run dev
+```
+
+### 🌍 Deploy Instantly to Vercel
+You can easily deploy this exact tracker to Vercel for free so you can access your roadmap from anywhere on your phone or laptop. 
+
+Just run:
+```bash
+npx vercel --prod
+```
+*(Or click "Import Project" on the Vercel dashboard and paste the link to this GitHub repository!)*
+
+---
+
+<div align="center">
+  <i>Built to keep the grind pure. Happy Coding! 💻</i>
+</div>
