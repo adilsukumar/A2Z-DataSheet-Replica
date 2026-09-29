@@ -32,19 +32,19 @@ So, I built my own **A2Z DataSheet Replica** to fix this. I scraped community ar
 
 ## ✨ Features of My Tracker
 
-### 📅 The Auto-Shifting Daily Plan
-No more rigid calendars! The tracker dynamically analyzes your progress and generates a **Daily Plan** for you:
-- **Smart Queueing:** If you are on a massive topic (like Arrays), the Daily Plan will automatically queue up to **3 LeetCode problems** for the day to build muscle memory.
-- **Graceful Pausing:** Missed a day? No problem! The timeline doesn't break; it simply pauses and waits for you. Your unfinished topic will remain your "Today" goal until you beat it.
+This isn't just a simple checklist; it is a full-fledged, privacy-first Learning Management System (LMS) built directly into your browser.
 
-### 🏆 Exclusive Codeforces Integration
-To build pure problem-solving logic and speed, I implemented a custom tag-mapping algorithm. Every single topic in the curriculum dynamically generates an objective to solve **1 Codeforces Problem** related to that exact concept.
-
-### 🎨 Premium Glassmorphic Aesthetic
-The entire UI is custom-built with Vanilla CSS (no Tailwind needed!). It features a stunning **Dark Mode**, frosted glass elements, smooth micro-animations, color-coded difficulty badges, and vibrant gradients.
-
-### 💾 100% Local Progress Tracking
-Your progress is fully private and saved directly to your browser's `localStorage`. No databases, no login screens, no hassle.
+- 📊 **Master Roadmap Dashboard**: View your overall "A2Z Progress" curriculum mastery, your Competitive Programming readiness, and your consecutive Daily Streak in a unified, beautiful glass-morphic dashboard.
+- 📅 **The Ultimate Daily Plan Engine**: An algorithm that generates a date-locked, 3-Phase daily workout:
+  - **Phase 1 (Muscle Memory)**: Learn concepts, watch videos, and solve 3 A2Z problems from your current topic.
+  - **Phase 2 (Logic & Speed)**: Solve 1 dynamically generated Codeforces task related to your topic.
+  - **Phase 3 (Spaced Repetition)**: Automatically reviews an old problem you flagged as "Needs Review" or previously solved to ensure you retain mastery.
+- 🔍 **Problem Bank (Search & Filters)**: Instantly search through all 402 problems. Filter by Platform (LeetCode, GFG, TakeUForward), Difficulty (Easy/Medium/Hard), or Status (Solved, Unsolved, Bookmarked, Needs Review).
+- 🧠 **Comprehensive Problem Tracking**: Don't just mark problems as "solved." You can **☆ Bookmark** them, flag them for **🔁 Review**, and even write your own **📝 Personal Notes** (e.g. *"Use a hashmap to achieve O(n) time complexity"*) directly inside the problem row.
+- 🔗 **Data Correctness & Native Progression**: Restored the missing GeeksForGeeks problems and fixed broken duplicate URLs from the original dataset. Every problem now features native, clickable inline buttons: `[ 🎥 Watch Video ] [ 📖 Read Article ] [ 💻 Solve ]`.
+- 🔐 **100% Privacy & Data Ownership**: No logins required. Your progress is stored securely in your browser's `localStorage`. The **Settings** tab allows you to natively Export your entire progress as a JSON backup and Import it to any other device or browser.
+- 🌐 **Shareable URLs & Accessibility**: Built with URL-hash routing (e.g. `/#step-15`), meaning you can share direct links to specific steps. The entire app is fully keyboard accessible (`Tab` and `Enter` ready).
+- 🎨 **Premium UI/UX Aesthetics**: Designed with modern visual principles—vibrant gradients, fluid micro-animations, glassmorphism overlays, and curated custom SVG icons to make staring at DSA actually enjoyable.
 
 ---
 
