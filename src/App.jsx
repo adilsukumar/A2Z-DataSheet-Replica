@@ -103,7 +103,6 @@ function App() {
   const [notes, setNotes] = useState(() => safeJSONParse('a2z-notes', {}));
   const [streak, setStreak] = useState(() => safeJSONParse('a2z-streak', { current: 0, lastDate: null }));
   const [dailyState, setDailyState] = useState(() => safeJSONParse('a2z-daily', null));
-  const [cfProblem, setCfProblem] = useState(null);
 
   const { problems } = data;
   const steps = data.meta.steps || [];
@@ -202,6 +201,7 @@ function App() {
             problemIds: todayProblems.map(p => p.id),
             reviewProblemId,
             cfTag: getCFTag(topic),
+            cfProblem: null,
             totalRemaining: unsolved.length
           };
           break;
@@ -213,12 +213,11 @@ function App() {
     if (newDaily) {
       localStorage.setItem('a2z-daily', JSON.stringify(newDaily));
       setDailyState(newDaily);
-      setCfProblem(null);
     }
   }, [steps, problems, solved, review, dailyState]);
 
   useEffect(() => {
-    if (dailyState && dailyState.cfTag && !cfProblem) {
+    if (dailyState && dailyState.cfTag && !dailyState.cfProblem) {
       fetch(`https://codeforces.com/api/problemset.problems?tags=${dailyState.cfTag}`)
         .then(res => res.json())
         .then(apiData => {
@@ -226,12 +225,20 @@ function App() {
             const validProblems = apiData.result.problems.filter(p => p.rating >= 800 && p.rating <= 1500);
             const pool = validProblems.length > 0 ? validProblems : apiData.result.problems;
             const randomP = pool[Math.floor(Math.random() * pool.length)];
-            setCfProblem(randomP);
+            
+            setDailyState(prev => {
+              if (prev && prev.date === dailyState.date) {
+                const updated = { ...prev, cfProblem: randomP };
+                localStorage.setItem('a2z-daily', JSON.stringify(updated));
+                return updated;
+              }
+              return prev;
+            });
           }
         })
         .catch(err => console.error("CF API Error:", err));
     }
-  }, [dailyState, cfProblem]);
+  }, [dailyState]);
 
   const getPlatformColor = (platform) => {
     if (platform === 'leetcode') return { bg: '#FFA11620', color: '#FFA116' };
@@ -484,18 +491,18 @@ function App() {
                   <div className="problem-info" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div className="problem-title">
-                        {cfProblem ? cfProblem.name : `Codeforces Practice: ${dailyState.topic}`}
+                        {dailyState.cfProblem ? dailyState.cfProblem.name : `Codeforces Practice: ${dailyState.topic}`}
                       </div>
                       <div className="problem-badges">
-                        {cfProblem && cfProblem.rating && (
-                          <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>Rating: {cfProblem.rating}</span>
+                        {dailyState.cfProblem && dailyState.cfProblem.rating && (
+                          <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>Rating: {dailyState.cfProblem.rating}</span>
                         )}
                         <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: '#ef4444' }}>Codeforces</span>
                       </div>
                     </div>
                     <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                      {cfProblem ? (
-                        <a href={`https://codeforces.com/problemset/problem/${cfProblem.contestId}/${cfProblem.index}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
+                      {dailyState.cfProblem ? (
+                        <a href={`https://codeforces.com/problemset/problem/${dailyState.cfProblem.contestId}/${dailyState.cfProblem.index}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
                           <CodeforcesIcon /> Solve Real CF Problem
                         </a>
                       ) : (
@@ -550,7 +557,7 @@ function App() {
                 <div style={{ display: 'flex', width: '100%', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <CodeforcesIcon style={{ color: '#ef4444' }}/>
-                    <div className="problem-title" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Bonus CP Practice: {topic}</div>
+                    <div className="problem-title" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Browse More Codeforces Problems: {topic}</div>
                   </div>
                   <a href={`https://codeforces.com/problemset?tags=${getCFTag(topic)}`} target="_blank" rel="noreferrer" className="btn-icon platform" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)'}}>
                     <CodeIcon />
