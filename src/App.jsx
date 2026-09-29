@@ -35,6 +35,10 @@ const SearchIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
 );
 
+const SettingsIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+);
+
 const getCFTag = (topic) => {
   const t = topic.toLowerCase();
   if (t.includes('math')) return 'math';
@@ -51,8 +55,24 @@ const getCFTag = (topic) => {
 };
 
 function App() {
-  const [activeView, setActiveView] = useState('roadmap');
+  const [activeView, setActiveView] = useState(() => {
+    const hash = window.location.hash.replace('#', '');
+    return hash || 'roadmap';
+  });
   const [activeNoteId, setActiveNoteId] = useState(null);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '');
+      setActiveView(hash || 'roadmap');
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const navigate = (view) => {
+    window.location.hash = view;
+  };
 
   // Search State
   const [searchQuery, setSearchQuery] = useState('');
@@ -336,16 +356,18 @@ function App() {
           </div>
         </div>
 
-        <div className="roadmap-grid">
+                <div className="roadmap-grid">
           {steps.map(step => {
             const progress = getStepProgress(step.n);
             if (progress.total === 0) return null;
             
             return (
-              <div 
+              <button 
                 key={step.n} 
                 className="roadmap-card"
-                onClick={() => setActiveView(step.n)}
+                onClick={() => navigate(`step-${step.n}`)}
+                aria-label={`View Step ${step.n}: ${step.title}`}
+                style={{ textAlign: 'left', display: 'block', width: '100%', background: 'var(--surface-light)', border: '1px solid rgba(255,255,255,0.05)' }}
               >
                 <div className="roadmap-step-num">Step {step.n}</div>
                 <div className="roadmap-title">{step.title}</div>
@@ -364,7 +386,7 @@ function App() {
                     }}
                   ></div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -576,6 +598,99 @@ function App() {
     );
   };
 
+  const renderSettingsView = () => {
+    const handleExport = () => {
+      const data = {
+        solved: Array.from(solved),
+        bookmarked: Array.from(bookmarked),
+        review: Array.from(review),
+        notes,
+        streak,
+        dailyState
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `a2z-progress-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+    };
+
+    const handleImport = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          if (data.solved) setSolved(new Set(data.solved));
+          if (data.bookmarked) setBookmarked(new Set(data.bookmarked));
+          if (data.review) setReview(new Set(data.review));
+          if (data.notes) setNotes(data.notes);
+          if (data.streak) setStreak(data.streak);
+          if (data.dailyState) setDailyState(data.dailyState);
+          alert('Progress imported successfully!');
+        } catch (err) {
+          alert('Failed to parse file. Make sure it is a valid A2Z backup JSON.');
+        }
+      };
+      reader.readAsText(file);
+    };
+
+    const handleReset = () => {
+      if (window.confirm("⚠️ WARNING: This will permanently erase ALL your progress (solved, bookmarks, notes, streak) from this browser! Are you absolutely sure?")) {
+        setSolved(new Set());
+        setBookmarked(new Set());
+        setReview(new Set());
+        setNotes({});
+        setStreak({ current: 0, lastDate: null });
+        setDailyState(null);
+        localStorage.clear();
+      }
+    };
+
+    return (
+      <div className="animate-fade-in">
+        <div className="main-header">
+          <h2>Settings</h2>
+          <p>Manage your data, import/export progress, and customize the app.</p>
+        </div>
+        
+        <div className="timeline-card" style={{ maxWidth: '600px' }}>
+          <div className="topic-section" style={{ border: 'none', background: 'transparent', marginBottom: 0 }}>
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <h3>Backup & Restore</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px', marginBottom: '16px' }}>
+                Your progress is stored securely in this browser. Export it to keep a backup or transfer it to another device.
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button className="learn-btn practice" onClick={handleExport} style={{ cursor: 'pointer' }}>
+                  📥 Export JSON
+                </button>
+                <label className="learn-btn youtube" style={{ cursor: 'pointer', margin: 0 }}>
+                  📤 Import JSON
+                  <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
+                </label>
+              </div>
+            </div>
+            
+            <div style={{ padding: '20px 24px', background: 'rgba(239, 68, 68, 0.05)' }}>
+              <h3 style={{ color: '#ef4444' }}>Danger Zone</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px', marginBottom: '16px' }}>
+                Irreversibly delete all local progress. This action cannot be undone.
+              </p>
+              <button className="learn-btn" onClick={handleReset} style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.1)', cursor: 'pointer' }}>
+                🗑️ Reset All Progress
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const currentStep = activeView.startsWith('step-') ? parseInt(activeView.replace('step-', '')) : null;
+
   return (
     <>
       <aside className="sidebar">
@@ -587,10 +702,10 @@ function App() {
         </div>
         
         <div className="sidebar-content">
-          <div 
+          <button 
             className={`step-item timeline-btn ${activeView === 'roadmap' ? 'active' : ''}`}
-            onClick={() => setActiveView('roadmap')}
-            style={{ marginBottom: '8px' }}
+            onClick={() => navigate('roadmap')}
+            style={{ marginBottom: '8px', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <RoadmapIcon />
@@ -599,11 +714,12 @@ function App() {
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
               Your Master Progress Dashboard
             </p>
-          </div>
+          </button>
 
-          <div 
+          <button 
             className={`step-item timeline-btn ${activeView === 'timeline' ? 'active' : ''}`}
-            onClick={() => setActiveView('timeline')}
+            onClick={() => navigate('timeline')}
+            style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <TimelineIcon />
@@ -612,11 +728,12 @@ function App() {
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
               Auto-shifting LC & CF tasks
             </p>
-          </div>
+          </button>
 
-          <div 
+          <button 
             className={`step-item timeline-btn ${activeView === 'search' ? 'active' : ''}`}
-            onClick={() => setActiveView('search')}
+            onClick={() => navigate('search')}
+            style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', marginTop: '8px' }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <SearchIcon />
@@ -625,7 +742,21 @@ function App() {
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
               Search & Filter all {problems.length} problems
             </p>
-          </div>
+          </button>
+          
+          <button 
+            className={`step-item timeline-btn ${activeView === 'settings' ? 'active' : ''}`}
+            onClick={() => navigate('settings')}
+            style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', marginTop: '8px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <SettingsIcon />
+              <span style={{ fontWeight: '600', fontSize: '1rem' }}>Settings</span>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Backup, import, or reset data
+            </p>
+          </button>
           
           <hr className="sidebar-divider" />
 
@@ -634,10 +765,11 @@ function App() {
             if (progress.total === 0) return null;
             
             return (
-              <div 
+              <button 
                 key={step.n} 
-                className={`step-item ${activeView === step.n ? 'active' : ''}`}
-                onClick={() => setActiveView(step.n)}
+                className={`step-item ${currentStep === step.n ? 'active' : ''}`}
+                onClick={() => navigate(`step-${step.n}`)}
+                style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer' }}
               >
                 <div className="step-number">Step {step.n}</div>
                 <div className="step-title">{step.title}</div>
@@ -650,7 +782,7 @@ function App() {
                     ></div>
                   </div>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -660,7 +792,8 @@ function App() {
         {activeView === 'roadmap' ? renderRoadmapView() : 
          activeView === 'timeline' ? renderTimelineView() : 
          activeView === 'search' ? renderSearchView() :
-         renderStepView(activeView)}
+         activeView === 'settings' ? renderSettingsView() :
+         currentStep ? renderStepView(currentStep) : renderRoadmapView()}
       </main>
     </>
   );
