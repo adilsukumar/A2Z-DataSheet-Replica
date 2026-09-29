@@ -965,8 +965,8 @@
       "tier": "core",
       "difficulty": "Medium",
       "difficultySource": "leetcode",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/frequency-of-the-most-frequent-element/",
+      "platform": "takeuforward",
+      "url": "https://takeuforward.org/data-structure/find-the-highest-lowest-frequency-element/",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -1455,8 +1455,8 @@
       "tier": "basic",
       "difficulty": "Easy",
       "difficultySource": "gfg",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/sort-an-array/",
+      "platform": "gfg",
+      "url": "https://www.geeksforgeeks.org/problems/selection-sort/1",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -1480,8 +1480,8 @@
       "tier": "basic",
       "difficulty": "Easy",
       "difficultySource": "gfg",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/sort-an-array/",
+      "platform": "gfg",
+      "url": "https://www.geeksforgeeks.org/problems/bubble-sort/1",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -1505,8 +1505,8 @@
       "tier": "basic",
       "difficulty": "Easy",
       "difficultySource": "gfg",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/sort-an-array/",
+      "platform": "gfg",
+      "url": "https://www.geeksforgeeks.org/problems/insertion-sort/1",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -1530,8 +1530,8 @@
       "tier": "core",
       "difficulty": "Medium",
       "difficultySource": "gfg",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/sort-an-array/",
+      "platform": "gfg",
+      "url": "https://www.geeksforgeeks.org/problems/merge-sort/1",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -1555,8 +1555,8 @@
       "tier": "core",
       "difficulty": "Medium",
       "difficultySource": "gfg",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/sort-an-array/",
+      "platform": "gfg",
+      "url": "https://www.geeksforgeeks.org/problems/quick-sort/1",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -1675,8 +1675,8 @@
       "tier": "basic",
       "difficulty": "Medium",
       "difficultySource": "leetcode",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/rotate-array/",
+      "platform": "takeuforward",
+      "url": "https://takeuforward.org/data-structure/left-rotate-the-array-by-one/",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -6615,8 +6615,8 @@
       "tier": "pro",
       "difficulty": "Easy",
       "difficultySource": "leetcode",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/binary-tree-inorder-traversal/",
+      "platform": "takeuforward",
+      "url": "https://takeuforward.org/data-structure/morris-preorder-traversal-of-a-binary-tree/",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -7410,8 +7410,8 @@
       "tier": "core",
       "difficulty": "Medium",
       "difficultySource": "leetcode",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/course-schedule/",
+      "platform": "takeuforward",
+      "url": "https://takeuforward.org/data-structure/detect-cycle-in-an-undirected-graph-using-bfs/",
       "altUrls": [
         {
           "platform": "takeuforward",
@@ -7485,8 +7485,8 @@
       "tier": "core",
       "difficulty": "Medium",
       "difficultySource": "leetcode",
-      "platform": "leetcode",
-      "url": "https://leetcode.com/problems/course-schedule/",
+      "platform": "takeuforward",
+      "url": "https://takeuforward.org/data-structure/detect-cycle-in-a-directed-graph-using-bfs-kahns-algorithm/",
       "altUrls": [
         {
           "platform": "takeuforward",

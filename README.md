@@ -18,17 +18,17 @@
 
 ## 🎯 What is the Striver A2Z DSA Sheet?
 
-The **A2Z DSA Sheet** (originally created by Raj Vikramaditya, a.k.a Striver) is one of the most popular and highly structured curriculums for mastering Data Structures and Algorithms. It is broken down into **18 meticulously ordered Steps** containing over 400 carefully curated problems. 
+The **A2Z DSA Sheet** (originally created by Raj Vikramaditya, a.k.a Striver) is one of the most popular and highly structured curriculums for mastering Data Structures and Algorithms. It is broken down into **19 meticulously ordered Steps** containing over 400 carefully curated problems. 
 
 The sheet takes you from extreme basics (like "Learn Basic Maths") all the way to advanced interview concepts like Dynamic Programming, Tries, and Advanced Graphs.
 
 ## 🛠 Why I Built This Replica (The Problem)
 
-I was religiously following the classic 18-step A2Z Sheet to prepare for interviews. However, a recent website redesign heavily disrupted the learning experience. The beautiful, straightforward progression of **Concept ➔ Video ➔ Article ➔ Practice Platform** was replaced, and the original problem structure became chaotic with the addition of embedded online IDEs and shuffled lists.
+I was religiously following the classic 19-step A2Z Sheet to prepare for interviews. However, a recent website redesign heavily disrupted the learning experience. The beautiful, straightforward progression of **Concept ➔ Video ➔ Article ➔ Practice Platform** was replaced, and the original problem structure became chaotic with the addition of embedded online IDEs and shuffled lists.
 
 I couldn't focus. I just wanted my raw roadmap back.
 
-So, I built my own **A2Z DataSheet Replica** to fix this. I scraped community archives to restore the pristine **402-problem, 18-step curriculum**. I stripped away the built-in IDEs, removed GeeksForGeeks distractions, and exclusively mapped the curriculum to **LeetCode** and **Codeforces**.
+So, I built my own **A2Z DataSheet Replica** to fix this. I scraped community archives to restore the pristine **402-problem, 19-step curriculum**. I stripped away the built-in IDEs, added back the native GFG and LeetCode progression, and enhanced it with dedicated Codeforces competitive programming routines.
 
 ## ✨ Features of My Tracker
 
