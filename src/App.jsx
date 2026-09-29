@@ -845,12 +845,25 @@ function App() {
         </div>
       </aside>
 
-      <main className="main-content">
-        {activeView === 'roadmap' ? renderRoadmapView() : 
-         activeView === 'timeline' ? renderTimelineView() : 
-         activeView === 'search' ? renderSearchView() :
-         activeView === 'settings' ? renderSettingsView() :
-         currentStep ? renderStepView(currentStep) : renderRoadmapView()}
+      <main className="main-content" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <div style={{ flex: '1 0 auto' }}>
+          {activeView === 'roadmap' ? renderRoadmapView() : 
+           activeView === 'timeline' ? renderTimelineView() : 
+           activeView === 'search' ? renderSearchView() :
+           activeView === 'settings' ? renderSettingsView() :
+           currentStep ? renderStepView(currentStep) : renderRoadmapView()}
+        </div>
+        
+        <footer style={{ marginTop: '60px', padding: '24px 0 8px 0', textAlign: 'center', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+            Designed & Built by <span style={{ color: '#fff', fontWeight: '600', letterSpacing: '0.5px' }}>Adil Sukumar</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '12px' }}>
+            <a href="https://www.adilsukumar.xyz" target="_blank" rel="noreferrer" className="footer-link">Portfolio</a>
+            <a href="https://linkedin.com/in/adilsukumar" target="_blank" rel="noreferrer" className="footer-link">LinkedIn</a>
+            <a href="https://github.com/adilsukumar" target="_blank" rel="noreferrer" className="footer-link">GitHub</a>
+          </div>
+        </footer>
       </main>
     </>
   );
