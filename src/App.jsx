@@ -31,6 +31,9 @@ const NotesIcon = () => (
 const FireIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="#f97316" stroke="#f97316" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"></path></svg>
 );
+const SearchIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+);
 
 const getCFTag = (topic) => {
   const t = topic.toLowerCase();
@@ -50,6 +53,12 @@ const getCFTag = (topic) => {
 function App() {
   const [activeView, setActiveView] = useState('roadmap');
   const [activeNoteId, setActiveNoteId] = useState(null);
+
+  // Search State
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterPlatform, setFilterPlatform] = useState('All');
+  const [filterDifficulty, setFilterDifficulty] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
 
   // Core State
   const [solved, setSolved] = useState(() => {
@@ -144,6 +153,19 @@ function App() {
     if (dailyState && dailyState.date === today) return;
 
     let newDaily = null;
+    let reviewProblemId = null;
+
+    // Pick a review problem
+    if (review.size > 0) {
+      const reviewArray = Array.from(review);
+      reviewProblemId = reviewArray[Math.floor(Math.random() * reviewArray.length)];
+    } else if (solved.size > 0) {
+      const solvedArray = Array.from(solved).filter(id => !id.startsWith('cf-daily'));
+      if (solvedArray.length > 0) {
+        reviewProblemId = solvedArray[Math.floor(Math.random() * solvedArray.length)];
+      }
+    }
+
     for (const step of steps) {
       const stepProblems = problems.filter(p => p.step === step.n);
       const stepTopics = groupProblemsByTopic(stepProblems);
@@ -157,6 +179,7 @@ function App() {
             step,
             topic,
             problemIds: todayProblems.map(p => p.id),
+            reviewProblemId,
             cfTag: getCFTag(topic),
             totalRemaining: unsolved.length
           };
@@ -170,7 +193,7 @@ function App() {
       localStorage.setItem('a2z-daily', JSON.stringify(newDaily));
       setDailyState(newDaily);
     }
-  }, [steps, problems, solved, dailyState]);
+  }, [steps, problems, solved, review, dailyState]);
 
   const getPlatformColor = (platform) => {
     if (platform === 'leetcode') return { bg: '#FFA11620', color: '#FFA116' };
@@ -360,12 +383,13 @@ function App() {
     }
 
     const dailyProblems = problems.filter(p => dailyState.problemIds.includes(p.id));
+    const reviewProblem = problems.find(p => p.id === dailyState.reviewProblemId);
     const cfId = `cf-daily-${dailyState.topic.replace(/\s+/g, '-')}-${dailyState.date}`;
 
     return (
       <div className="animate-fade-in">
         <div className="main-header">
-          <h2>Today's Daily Plan ({dailyState.date})</h2>
+          <h2>Today's Learning Plan ({dailyState.date})</h2>
           <p>Based on your progress, you are currently on <strong>Step {dailyState.step.n}: {dailyState.step.title}</strong>.</p>
         </div>
         
@@ -382,12 +406,12 @@ function App() {
           
           <div className="topic-section" style={{ border: 'none', background: 'transparent', marginBottom: 0 }}>
             <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
-              🎯 <strong>Objective 1:</strong> Solve {dailyProblems.length} A2Z problem{dailyProblems.length > 1 ? 's' : ''} to build muscle memory.
+              📚 <strong>Phase 1:</strong> Learn the concept, watch videos, and solve {dailyProblems.length} A2Z problem{dailyProblems.length > 1 ? 's' : ''}.
             </div>
             {renderProblemList(dailyProblems)}
             
             <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
-              🎯 <strong>Objective 2:</strong> Solve 1 Codeforces problem to build logic and speed.
+              ⚡ <strong>Phase 2:</strong> Solve 1 Codeforces problem on this topic to build raw speed.
             </div>
             
             <div className="problem-list">
@@ -417,6 +441,15 @@ function App() {
                 </div>
               </div>
             </div>
+
+            {reviewProblem && (
+              <>
+                <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
+                  🔁 <strong>Phase 3:</strong> Review an old problem to retain mastery.
+                </div>
+                {renderProblemList([reviewProblem])}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -464,6 +497,85 @@ function App() {
     );
   };
 
+  const renderSearchView = () => {
+    let filtered = problems;
+    
+    // Apply Filters
+    if (searchQuery.trim() !== '') {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.title.toLowerCase().includes(q) || 
+        p.topic.toLowerCase().includes(q) ||
+        `step ${p.step}`.includes(q)
+      );
+    }
+    
+    if (filterPlatform !== 'All') {
+      filtered = filtered.filter(p => p.platform.toLowerCase() === filterPlatform.toLowerCase());
+    }
+    
+    if (filterDifficulty !== 'All') {
+      filtered = filtered.filter(p => (p.difficulty || '').toLowerCase() === filterDifficulty.toLowerCase());
+    }
+    
+    if (filterStatus !== 'All') {
+      if (filterStatus === 'Solved') filtered = filtered.filter(p => solved.has(p.id));
+      else if (filterStatus === 'Unsolved') filtered = filtered.filter(p => !solved.has(p.id));
+      else if (filterStatus === 'Bookmarked') filtered = filtered.filter(p => bookmarked.has(p.id));
+      else if (filterStatus === 'Review') filtered = filtered.filter(p => review.has(p.id));
+    }
+
+    return (
+      <div className="animate-fade-in">
+        <div className="main-header">
+          <h2>Search & Filters</h2>
+          <p>Find specific problems across the entire {problems.length}-problem dataset.</p>
+        </div>
+
+        <div className="search-controls" style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '24px', background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+          <input 
+            type="text" 
+            placeholder="Search titles, topics, or steps..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{ flex: '1 1 200px', padding: '10px 14px', borderRadius: '8px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+          />
+          <select value={filterPlatform} onChange={(e) => setFilterPlatform(e.target.value)} className="filter-select">
+            <option value="All">All Platforms</option>
+            <option value="leetcode">LeetCode</option>
+            <option value="gfg">GeeksForGeeks</option>
+            <option value="takeuforward">TakeUForward</option>
+          </select>
+          <select value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)} className="filter-select">
+            <option value="All">All Difficulties</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+          </select>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="filter-select">
+            <option value="All">All Statuses</option>
+            <option value="Unsolved">Unsolved</option>
+            <option value="Solved">Solved</option>
+            <option value="Bookmarked">Bookmarked</option>
+            <option value="Review">Needs Review</option>
+          </select>
+        </div>
+
+        <div className="topic-section">
+          <div className="topic-header">
+            <h3>Results</h3>
+            <span className="topic-progress">{filtered.length} matches</span>
+          </div>
+          {filtered.length > 0 ? renderProblemList(filtered) : (
+            <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}>
+              No problems match your exact filters.
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <>
       <aside className="sidebar">
@@ -501,6 +613,19 @@ function App() {
               Auto-shifting LC & CF tasks
             </p>
           </div>
+
+          <div 
+            className={`step-item timeline-btn ${activeView === 'search' ? 'active' : ''}`}
+            onClick={() => setActiveView('search')}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <SearchIcon />
+              <span style={{ fontWeight: '600', fontSize: '1rem' }}>Problem Bank</span>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Search & Filter all {problems.length} problems
+            </p>
+          </div>
           
           <hr className="sidebar-divider" />
 
@@ -532,7 +657,10 @@ function App() {
       </aside>
 
       <main className="main-content">
-        {activeView === 'roadmap' ? renderRoadmapView() : (activeView === 'timeline' ? renderTimelineView() : renderStepView(activeView))}
+        {activeView === 'roadmap' ? renderRoadmapView() : 
+         activeView === 'timeline' ? renderTimelineView() : 
+         activeView === 'search' ? renderSearchView() :
+         renderStepView(activeView)}
       </main>
     </>
   );
