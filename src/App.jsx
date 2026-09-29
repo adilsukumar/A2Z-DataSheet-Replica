@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import data from './data.json';
+import { topicDocs } from './topicDocs';
 
 const YoutubeIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"></path><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"></polygon></svg>
@@ -81,31 +82,28 @@ function App() {
   const [filterStatus, setFilterStatus] = useState('All');
 
   // Core State
-  const [solved, setSolved] = useState(() => {
-    const saved = localStorage.getItem('a2z-solved');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
-  const [bookmarked, setBookmarked] = useState(() => {
-    const saved = localStorage.getItem('a2z-bookmarked');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
-  const [review, setReview] = useState(() => {
-    const saved = localStorage.getItem('a2z-review');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
-  const [notes, setNotes] = useState(() => {
-    const saved = localStorage.getItem('a2z-notes');
-    return saved ? JSON.parse(saved) : {};
-  });
-  const [streak, setStreak] = useState(() => {
-    const saved = localStorage.getItem('a2z-streak');
-    return saved ? JSON.parse(saved) : { current: 0, lastDate: null };
-  });
+  const safeJSONParse = (key, defaultVal) => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : defaultVal;
+    } catch (e) {
+      console.error(`Error parsing ${key} from localStorage`, e);
+      return defaultVal;
+    }
+  };
 
-  const [dailyState, setDailyState] = useState(() => {
-    const saved = localStorage.getItem('a2z-daily');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const getLocalDateString = () => {
+    const d = new Date();
+    return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  };
+
+  const [solved, setSolved] = useState(() => new Set(safeJSONParse('a2z-solved', [])));
+  const [bookmarked, setBookmarked] = useState(() => new Set(safeJSONParse('a2z-bookmarked', [])));
+  const [review, setReview] = useState(() => new Set(safeJSONParse('a2z-review', [])));
+  const [notes, setNotes] = useState(() => safeJSONParse('a2z-notes', {}));
+  const [streak, setStreak] = useState(() => safeJSONParse('a2z-streak', { current: 0, lastDate: null }));
+  const [dailyState, setDailyState] = useState(() => safeJSONParse('a2z-daily', null));
+  const [cfProblem, setCfProblem] = useState(null);
 
   const { problems } = data;
   const steps = data.meta.steps || [];
@@ -119,11 +117,14 @@ function App() {
 
   // Streak logic
   const updateStreak = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     setStreak(prev => {
       if (prev.lastDate === today) return prev; // Already updated today
       
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const yesterday = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      
       if (prev.lastDate === yesterday) {
         return { current: prev.current + 1, lastDate: today };
       }
@@ -169,7 +170,7 @@ function App() {
   };
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalDateString();
     if (dailyState && dailyState.date === today) return;
 
     let newDaily = null;
@@ -212,8 +213,25 @@ function App() {
     if (newDaily) {
       localStorage.setItem('a2z-daily', JSON.stringify(newDaily));
       setDailyState(newDaily);
+      setCfProblem(null);
     }
   }, [steps, problems, solved, review, dailyState]);
+
+  useEffect(() => {
+    if (dailyState && dailyState.cfTag && !cfProblem) {
+      fetch(`https://codeforces.com/api/problemset.problems?tags=${dailyState.cfTag}`)
+        .then(res => res.json())
+        .then(apiData => {
+          if (apiData.status === 'OK' && apiData.result.problems.length > 0) {
+            const validProblems = apiData.result.problems.filter(p => p.rating >= 800 && p.rating <= 1500);
+            const pool = validProblems.length > 0 ? validProblems : apiData.result.problems;
+            const randomP = pool[Math.floor(Math.random() * pool.length)];
+            setCfProblem(randomP);
+          }
+        })
+        .catch(err => console.error("CF API Error:", err));
+    }
+  }, [dailyState, cfProblem]);
 
   const getPlatformColor = (platform) => {
     if (platform === 'leetcode') return { bg: '#FFA11620', color: '#FFA116' };
@@ -246,9 +264,13 @@ function App() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div className="problem-title">{problem.title}</div>
                     <div className="problem-badges">
-                      {problem.difficulty && (
+                      {problem.difficulty ? (
                         <span className={`badge difficulty-${problem.difficulty.toLowerCase()}`}>
                           {problem.difficulty}
+                        </span>
+                      ) : (
+                        <span className="badge" style={{ color: 'var(--text-secondary)' }}>
+                          Difficulty: —
                         </span>
                       )}
                       <span className="badge" style={{ background: platColors.bg, color: platColors.color, borderColor: platColors.color }}>
@@ -338,9 +360,9 @@ function App() {
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>Curriculum Mastered</p>
           </div>
           <div className="stat-widget">
-            <h4>CP Readiness</h4>
+            <h4>CP Practice</h4>
             <div className="stat-value">{solvedCf}</div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>Codeforces Topics</p>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '8px' }}>Codeforces Tasks</p>
           </div>
           <div className="stat-widget">
             <h4>Total Solved</h4>
@@ -427,6 +449,18 @@ function App() {
           </div>
           
           <div className="topic-section" style={{ border: 'none', background: 'transparent', marginBottom: 0 }}>
+            {topicDocs[dailyState.topic] && (
+              <div style={{ padding: '24px', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <h4 style={{ color: '#a78bfa', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  {topicDocs[dailyState.topic].title}
+                </h4>
+                <div style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
+                  {topicDocs[dailyState.topic].content.split('**').map((text, i) => i % 2 === 1 ? <strong key={i} style={{color: '#fff'}}>{text}</strong> : text)}
+                </div>
+              </div>
+            )}
+
             <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
               📚 <strong>Phase 1:</strong> Learn the concept, watch videos, and solve {dailyProblems.length} A2Z problem{dailyProblems.length > 1 ? 's' : ''}.
             </div>
@@ -449,15 +483,26 @@ function App() {
                   </div>
                   <div className="problem-info" style={{ width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="problem-title">Codeforces Practice: {dailyState.topic}</div>
+                      <div className="problem-title">
+                        {cfProblem ? cfProblem.name : `Codeforces Practice: ${dailyState.topic}`}
+                      </div>
                       <div className="problem-badges">
+                        {cfProblem && cfProblem.rating && (
+                          <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>Rating: {cfProblem.rating}</span>
+                        )}
                         <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: '#ef4444' }}>Codeforces</span>
                       </div>
                     </div>
                     <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                      <a href={`https://codeforces.com/problemset?tags=${dailyState.cfTag}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
-                        <CodeforcesIcon /> Find CP Problem
-                      </a>
+                      {cfProblem ? (
+                        <a href={`https://codeforces.com/problemset/problem/${cfProblem.contestId}/${cfProblem.index}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
+                          <CodeforcesIcon /> Solve Real CF Problem
+                        </a>
+                      ) : (
+                        <a href={`https://codeforces.com/problemset?tags=${dailyState.cfTag}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
+                          <CodeforcesIcon /> Loading CF Problem...
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -645,7 +690,12 @@ function App() {
         setNotes({});
         setStreak({ current: 0, lastDate: null });
         setDailyState(null);
-        localStorage.clear();
+        localStorage.removeItem('a2z-solved');
+        localStorage.removeItem('a2z-bookmarked');
+        localStorage.removeItem('a2z-review');
+        localStorage.removeItem('a2z-notes');
+        localStorage.removeItem('a2z-streak');
+        localStorage.removeItem('a2z-daily');
       }
     };
 
