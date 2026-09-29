@@ -32,8 +32,31 @@ const TimelineIcon = () => (
   </svg>
 );
 
+const CodeforcesIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="14" width="4" height="7" fill="currentColor" stroke="none"></rect>
+    <rect x="10" y="7" width="4" height="14" fill="currentColor" stroke="none"></rect>
+    <rect x="17" y="3" width="4" height="18" fill="currentColor" stroke="none"></rect>
+  </svg>
+);
+
+// Map A2Z topics to Codeforces tags
+const getCFTag = (topic) => {
+  const t = topic.toLowerCase();
+  if (t.includes('math')) return 'math';
+  if (t.includes('sort')) return 'sortings';
+  if (t.includes('array')) return 'arrays';
+  if (t.includes('binary search')) return 'binary+search';
+  if (t.includes('string')) return 'strings';
+  if (t.includes('greedy')) return 'greedy';
+  if (t.includes('tree')) return 'trees';
+  if (t.includes('graph')) return 'graphs';
+  if (t.includes('dp') || t.includes('dynamic')) return 'dp';
+  if (t.includes('bit')) return 'bitmasks';
+  return 'data+structures';
+};
+
 function App() {
-  // activeView can be a step number (e.g., 1, 2) or 'timeline'
   const [activeView, setActiveView] = useState('timeline');
   const [solved, setSolved] = useState(() => {
     const saved = localStorage.getItem('a2z-solved');
@@ -57,12 +80,11 @@ function App() {
   };
 
   const getStepProgress = (stepN) => {
-    const stepProblems = problems.filter(p => p.step === stepN);
+    const stepProblems = problems.filter(p => p.step === stepN && p.platform !== 'gfg');
     const solvedCount = stepProblems.filter(p => solved.has(p.id)).length;
     return { solvedCount, total: stepProblems.length };
   };
 
-  // Helper to group problems by topic
   const groupProblemsByTopic = (problemList) => {
     const topicsMap = {};
     problemList.forEach(p => {
@@ -74,27 +96,36 @@ function App() {
     return topicsMap;
   };
 
-  // Calculate "Today's Recommended Module"
-  // Logic: Find the first step, and within it the first topic, that is not 100% completed.
+  // Calculate Today's Daily Plan
   const getDailyRecommendation = () => {
     for (const step of steps) {
-      const stepProblems = problems.filter(p => p.step === step.n);
+      // Filter out GFG globally for the timeline as requested
+      const stepProblems = problems.filter(p => p.step === step.n && p.platform !== 'gfg');
       const stepTopics = groupProblemsByTopic(stepProblems);
       
       for (const [topic, tProblems] of Object.entries(stepTopics)) {
-        const topicSolved = tProblems.filter(p => solved.has(p.id)).length;
-        if (topicSolved < tProblems.length) {
-          return { step, topic, problems: tProblems, solved: topicSolved, total: tProblems.length };
+        const unsolved = tProblems.filter(p => !solved.has(p.id));
+        if (unsolved.length > 0) {
+          // If a topic is big, take up to 3 Leetcode problems for today's practice
+          const todayLeetcode = unsolved.slice(0, 3);
+          
+          return { 
+            step, 
+            topic, 
+            leetcode: todayLeetcode,
+            cfTag: getCFTag(topic),
+            totalRemaining: unsolved.length
+          };
         }
       }
     }
-    return null; // Everything is solved!
+    return null;
   };
 
-  const renderProblemList = (topicProblems) => {
+  const renderProblemList = (problemList) => {
     return (
       <div className="problem-list">
-        {topicProblems.map((problem) => (
+        {problemList.map((problem) => (
           <div key={problem.id} className="problem-row">
             <div className="checkbox-container">
               <input 
@@ -113,7 +144,7 @@ function App() {
                     {problem.difficulty}
                   </span>
                 )}
-                <span className="badge">{problem.tier}</span>
+                <span className="badge">{problem.platform}</span>
               </div>
             </div>
             <div className="problem-actions">
@@ -140,37 +171,71 @@ function App() {
   };
 
   const renderTimelineView = () => {
-    const recommendation = getDailyRecommendation();
+    const rec = getDailyRecommendation();
 
-    if (!recommendation) {
+    if (!rec) {
       return (
         <div className="main-header animate-fade-in">
           <h2>🎉 Congratulations!</h2>
-          <p>You have completed the entire A2Z DataSheet. You are ready for interviews!</p>
+          <p>You have completed all LeetCode problems in the A2Z DataSheet.</p>
         </div>
       );
     }
+
+    const cfId = `cf-daily-${rec.topic.replace(/\s+/g, '-')}`;
 
     return (
       <div className="animate-fade-in">
         <div className="main-header">
           <h2>Today's Daily Plan</h2>
-          <p>Based on your progress, here is your dynamically routed timeline for today.</p>
+          <p>Based on your progress, you are currently on <strong>Step {rec.step.n}: {rec.step.title}</strong>.</p>
         </div>
         
         <div className="timeline-card">
           <div className="timeline-card-header">
             <div>
-              <div className="timeline-step">Step {recommendation.step.n}: {recommendation.step.title}</div>
-              <h3>Current Module: {recommendation.topic}</h3>
+              <div className="timeline-step">Current Topic</div>
+              <h3>{rec.topic}</h3>
             </div>
-            <div className="timeline-progress">
-              {recommendation.solved} / {recommendation.total} Solved
+            <div className="timeline-progress" style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', borderColor: 'rgba(59, 130, 246, 0.3)'}}>
+              {rec.totalRemaining} LC Problems Left
             </div>
           </div>
           
-          <div className="topic-section" style={{ border: 'none', background: 'transparent' }}>
-            {renderProblemList(recommendation.problems)}
+          <div className="topic-section" style={{ border: 'none', background: 'transparent', marginBottom: 0 }}>
+            <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
+              🎯 <strong>Objective 1:</strong> Solve {rec.leetcode.length} LeetCode problem{rec.leetcode.length > 1 ? 's' : ''} to build muscle memory.
+            </div>
+            {renderProblemList(rec.leetcode)}
+            
+            <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
+              🎯 <strong>Objective 2:</strong> Solve 1 Codeforces problem to build logic and speed.
+            </div>
+            
+            <div className="problem-list">
+              <div className="problem-row" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div className="checkbox-container">
+                  <input 
+                    type="checkbox" 
+                    className="custom-checkbox"
+                    checked={solved.has(cfId)}
+                    onChange={() => toggleSolved(cfId)}
+                  />
+                </div>
+                <div className="problem-info">
+                  <div className="problem-title">Codeforces Practice: {rec.topic}</div>
+                  <div className="problem-badges">
+                    <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>Codeforces</span>
+                    <span className="badge">Tag: {rec.cfTag}</span>
+                  </div>
+                </div>
+                <div className="problem-actions">
+                  <a href={`https://codeforces.com/problemset?tags=${rec.cfTag}`} target="_blank" rel="noreferrer" className="btn-icon platform" title="Find a Codeforces Problem" style={{ color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)'}}>
+                    <CodeforcesIcon />
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -179,25 +244,42 @@ function App() {
 
   const renderStepView = (stepN) => {
     const activeStepMeta = steps.find(s => s.n === stepN);
-    const activeProblems = problems.filter(p => p.step === stepN);
+    // For regular view, we also filter out GFG as requested
+    const activeProblems = problems.filter(p => p.step === stepN && p.platform !== 'gfg');
     const topicsMap = groupProblemsByTopic(activeProblems);
 
     return (
       <div className="animate-fade-in">
         <div className="main-header">
           <h2>Step {stepN}: {activeStepMeta?.title}</h2>
-          <p>Complete the topics below to master this step.</p>
+          <p>Complete the topics below to master this step. GFG problems have been hidden.</p>
         </div>
 
         {Object.entries(topicsMap).map(([topic, topicProblems], index) => {
           const topicSolved = topicProblems.filter(p => solved.has(p.id)).length;
+          // Add a virtual Codeforces task for the topic in the list view too
+          const cfId = `cf-daily-${topic.replace(/\s+/g, '-')}`;
+          const isCfSolved = solved.has(cfId);
+          
           return (
             <div key={topic} className="topic-section animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
               <div className="topic-header">
                 <h3>{topic}</h3>
-                <span className="topic-progress">{topicSolved} / {topicProblems.length}</span>
+                <span className="topic-progress">{topicSolved + (isCfSolved ? 1 : 0)} / {topicProblems.length + 1}</span>
               </div>
               {renderProblemList(topicProblems)}
+              <div className="problem-row" style={{ borderTop: '1px solid rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
+                <div className="checkbox-container">
+                  <input type="checkbox" className="custom-checkbox" checked={isCfSolved} onChange={() => toggleSolved(cfId)} />
+                </div>
+                <div className="problem-info">
+                  <div className="problem-title">CF Practice: {topic}</div>
+                  <div className="problem-badges"><span className="badge" style={{color: '#ef4444'}}>Codeforces</span></div>
+                </div>
+                <div className="problem-actions">
+                  <a href={`https://codeforces.com/problemset?tags=${getCFTag(topic)}`} target="_blank" rel="noreferrer" className="btn-icon platform"><CodeforcesIcon /></a>
+                </div>
+              </div>
             </div>
           );
         })}
@@ -211,14 +293,8 @@ function App() {
         <div className="sidebar-header">
           <h1>Striver A2Z Replica</h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-            {solved.size} / {problems.length} Solved
+            {solved.size} Tasks Completed
           </p>
-          <div className="progress-bar-container" style={{ marginTop: '12px' }}>
-            <div 
-              className="progress-bar" 
-              style={{ width: `${(solved.size / problems.length) * 100}%` }}
-            ></div>
-          </div>
         </div>
         
         <div className="sidebar-content">
@@ -231,7 +307,7 @@ function App() {
               <span style={{ fontWeight: '600', fontSize: '1rem' }}>Daily Plan</span>
             </div>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
-              Auto-shifting timeline
+              Auto-shifting LC & CF tasks
             </p>
           </div>
           
@@ -239,6 +315,9 @@ function App() {
 
           {steps.map(step => {
             const progress = getStepProgress(step.n);
+            // Ignore steps with 0 non-GFG problems
+            if (progress.total === 0) return null;
+            
             return (
               <div 
                 key={step.n} 
@@ -248,7 +327,7 @@ function App() {
                 <div className="step-number">Step {step.n}</div>
                 <div className="step-title">{step.title}</div>
                 <div className="step-meta">
-                  <span>{progress.solvedCount} / {progress.total}</span>
+                  <span>{progress.solvedCount} / {progress.total} LC</span>
                   <div className="progress-bar-container" style={{ width: '60px', marginLeft: 'auto', background: 'rgba(255,255,255,0.1)' }}>
                     <div 
                       className="progress-bar" 
