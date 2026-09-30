@@ -456,6 +456,7 @@ function App() {
     const dailyProblems = problems.filter(p => dailyState.problemIds.includes(p.id));
     const reviewProblem = problems.find(p => p.id === dailyState.reviewProblemId);
     const cfId = `cf-daily-${dailyState.topic.replace(/\s+/g, '-')}-${dailyState.date}`;
+    const lcId = `lc-daily-${dailyState.topic.replace(/\s+/g, '-')}-${dailyState.date}`;
 
     return (
       <div className="animate-fade-in">
@@ -494,10 +495,40 @@ function App() {
             {renderProblemList(dailyProblems)}
             
             <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
-              ⚡ <strong>Phase 2:</strong> Solve 1 Codeforces problem on this topic to build raw speed.
+              ⚡ <strong>Phase 2:</strong> Solve 1 LeetCode and 1 Codeforces problem on this topic to build raw speed.
             </div>
             
             <div className="problem-list">
+              {/* LeetCode Row */}
+              <div className="problem-row" style={{ background: 'rgba(255,255,255,0.02)' }}>
+                <div style={{ display: 'flex' }}>
+                  <div className="checkbox-container">
+                    <input 
+                      type="checkbox" 
+                      className="custom-checkbox"
+                      checked={solved.has(lcId)}
+                      onChange={() => toggleSolved(lcId)}
+                    />
+                  </div>
+                  <div className="problem-info" style={{ width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="problem-title">
+                        LeetCode Practice: {dailyState.topic}
+                      </div>
+                      <div className="problem-badges">
+                        <span className="badge" style={{ background: '#FFA11620', color: '#FFA116', borderColor: '#FFA116' }}>LeetCode</span>
+                      </div>
+                    </div>
+                    <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                      <a href={getLCTag(dailyState.topic) ? `https://leetcode.com/problemset/all/?topicSlugs=${getLCTag(dailyState.topic)}` : 'https://leetcode.com/problemset/all/'} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)', background: 'rgba(255,161,22,0.05)'}}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg> Browse {dailyState.topic} on LeetCode
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Codeforces Row */}
               <div className="problem-row" style={{ background: 'rgba(255,255,255,0.02)' }}>
                 <div style={{ display: 'flex' }}>
                   <div className="checkbox-container">
