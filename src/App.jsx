@@ -571,6 +571,74 @@ function App() {
     );
   };
 
+  const renderDailyChallengesView = () => {
+    return (
+      <div className="animate-fade-in">
+        <div className="main-header">
+          <h2>Daily Random Challenges</h2>
+          <p>Independent of your A2Z roadmap progression. Keep your mind sharp by solving random problems from across the internet.</p>
+        </div>
+        
+        <div className="roadmap-grid">
+          <div className="timeline-card" style={{ padding: '24px', margin: '0', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ padding: '8px', background: 'rgba(255, 161, 22, 0.1)', borderRadius: '8px', color: '#FFA116' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+              </div>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>LeetCode Daily</h3>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
+              Solve the official LeetCode Problem of the Day, or challenge yourself with a completely random problem from their database.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
+              <a href="https://leetcode.com/" target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center', background: 'rgba(255,161,22,0.1)', color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)' }}>
+                Official Daily Challenge
+              </a>
+              <a href="https://leetcode.com/problems/random-one-question/all" target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center' }}>
+                Pick Random LC Problem
+              </a>
+            </div>
+          </div>
+
+          <div className="timeline-card" style={{ padding: '24px', margin: '0', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', color: '#ef4444' }}>
+                <CodeforcesIcon />
+              </div>
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Codeforces Random</h3>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
+              Generate a completely random Codeforces problem from any topic to build raw problem-solving logic.
+            </p>
+            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
+              <button 
+                className="learn-btn" 
+                onClick={() => {
+                  fetch(`https://codeforces.com/api/problemset.problems?tags=implementation`)
+                    .then(res => res.json())
+                    .then(apiData => {
+                      if (apiData.status === 'OK' && apiData.result.problems.length > 0) {
+                        const validProblems = apiData.result.problems.filter(p => p.rating >= 1000 && p.rating <= 1600);
+                        const pool = validProblems.length > 0 ? validProblems : apiData.result.problems;
+                        const randomP = pool[Math.floor(Math.random() * pool.length)];
+                        window.open(`https://codeforces.com/problemset/problem/${randomP.contestId}/${randomP.index}`, '_blank');
+                      }
+                    });
+                }}
+                style={{ justifyContent: 'center', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', cursor: 'pointer' }}
+              >
+                Solve Random CF Problem
+              </button>
+              <a href="https://codeforces.com/problemset" target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center' }}>
+                Browse CF Problemset
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const renderSearchView = () => {
     let filtered = problems;
     
@@ -788,6 +856,20 @@ function App() {
           </button>
 
           <button 
+            className={`step-item timeline-btn ${activeView === 'randoms' ? 'active' : ''}`}
+            onClick={() => navigate('randoms')}
+            style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', marginTop: '8px' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FireIcon />
+              <span style={{ fontWeight: '600', fontSize: '1rem' }}>Daily Challenges</span>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px' }}>
+              Random LC & CF outside roadmap
+            </p>
+          </button>
+
+          <button 
             className={`step-item timeline-btn ${activeView === 'search' ? 'active' : ''}`}
             onClick={() => navigate('search')}
             style={{ width: '100%', textAlign: 'left', background: 'transparent', border: 'none', cursor: 'pointer', marginTop: '8px' }}
@@ -849,6 +931,7 @@ function App() {
         <div style={{ flex: '1 0 auto' }}>
           {activeView === 'roadmap' ? renderRoadmapView() : 
            activeView === 'timeline' ? renderTimelineView() : 
+           activeView === 'randoms' ? renderDailyChallengesView() :
            activeView === 'search' ? renderSearchView() :
            activeView === 'settings' ? renderSettingsView() :
            currentStep ? renderStepView(currentStep) : renderRoadmapView()}
