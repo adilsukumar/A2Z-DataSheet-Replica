@@ -55,6 +55,26 @@ const getCFTag = (topic) => {
   return 'data+structures';
 };
 
+const getLCTag = (topic) => {
+  const t = topic.toLowerCase();
+  if (t.includes('array')) return 'array';
+  if (t.includes('binary search')) return 'binary-search';
+  if (t.includes('string')) return 'string';
+  if (t.includes('linked list')) return 'linked-list';
+  if (t.includes('recursion')) return 'recursion';
+  if (t.includes('hash')) return 'hash-table';
+  if (t.includes('stack') || t.includes('queue')) return 'stack';
+  if (t.includes('window')) return 'sliding-window';
+  if (t.includes('heap')) return 'heap-priority-queue';
+  if (t.includes('greedy')) return 'greedy';
+  if (t.includes('tree')) return 'tree';
+  if (t.includes('graph')) return 'graph';
+  if (t.includes('dp') || t.includes('dynamic')) return 'dynamic-programming';
+  if (t.includes('trie')) return 'trie';
+  if (t.includes('bit')) return 'bit-manipulation';
+  return '';
+};
+
 function App() {
   const [activeView, setActiveView] = useState(() => {
     const hash = window.location.hash.replace('#', '');
@@ -572,69 +592,76 @@ function App() {
   };
 
   const renderDailyChallengesView = () => {
+    const currentTopic = dailyState ? dailyState.topic : null;
+    const lcTag = currentTopic ? getLCTag(currentTopic) : '';
+    const cfTag = currentTopic ? dailyState.cfTag : '';
+
     return (
       <div className="animate-fade-in">
         <div className="main-header">
-          <h2>Daily Random Challenges</h2>
-          <p>Independent of your A2Z roadmap progression. Keep your mind sharp by solving random problems from across the internet.</p>
+          <h2>Extra Practice: {currentTopic || 'No Active Topic'}</h2>
+          <p>Solve 1 LC and 1 CF problem every day outside the roadmap. These links are dynamically synced to the topic you are currently learning.</p>
         </div>
         
-        <div className="roadmap-grid">
-          <div className="timeline-card" style={{ padding: '24px', margin: '0', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ padding: '8px', background: 'rgba(255, 161, 22, 0.1)', borderRadius: '8px', color: '#FFA116' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
-              </div>
-              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>LeetCode Daily</h3>
-            </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
-              Solve the official LeetCode Problem of the Day, or challenge yourself with a completely random problem from their database.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
-              <a href="https://leetcode.com/" target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center', background: 'rgba(255,161,22,0.1)', color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)' }}>
-                Official Daily Challenge
-              </a>
-              <a href="https://leetcode.com/problems/random-one-question/all" target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center' }}>
-                Pick Random LC Problem
-              </a>
-            </div>
+        {!currentTopic ? (
+          <div style={{ padding: '40px', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+            <p style={{ color: 'var(--text-secondary)' }}>You don't have an active topic for today.</p>
+            <p style={{ color: 'var(--text-secondary)' }}>Visit the <strong>Daily Plan</strong> to generate today's learning objective first!</p>
           </div>
+        ) : (
+          <div className="roadmap-grid">
+            <div className="timeline-card" style={{ padding: '24px', margin: '0', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ padding: '8px', background: 'rgba(255, 161, 22, 0.1)', borderRadius: '8px', color: '#FFA116' }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg>
+                </div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>LeetCode: {currentTopic}</h3>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
+                Ran out of {currentTopic} questions in the roadmap? Or just want extra daily practice? Jump into LeetCode's archive.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
+                <a href={lcTag ? `https://leetcode.com/problemset/all/?topicSlugs=${lcTag}` : 'https://leetcode.com/problemset/all/'} target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center', background: 'rgba(255,161,22,0.1)', color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)' }}>
+                  Browse {currentTopic} on LeetCode
+                </a>
+              </div>
+            </div>
 
-          <div className="timeline-card" style={{ padding: '24px', margin: '0', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-              <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', color: '#ef4444' }}>
-                <CodeforcesIcon />
+            <div className="timeline-card" style={{ padding: '24px', margin: '0', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                <div style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px', color: '#ef4444' }}>
+                  <CodeforcesIcon />
+                </div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Codeforces: {currentTopic}</h3>
               </div>
-              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Codeforces Random</h3>
-            </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
-              Generate a completely random Codeforces problem from any topic to build raw problem-solving logic.
-            </p>
-            <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
-              <button 
-                className="learn-btn" 
-                onClick={() => {
-                  fetch(`https://codeforces.com/api/problemset.problems?tags=implementation`)
-                    .then(res => res.json())
-                    .then(apiData => {
-                      if (apiData.status === 'OK' && apiData.result.problems.length > 0) {
-                        const validProblems = apiData.result.problems.filter(p => p.rating >= 1000 && p.rating <= 1600);
-                        const pool = validProblems.length > 0 ? validProblems : apiData.result.problems;
-                        const randomP = pool[Math.floor(Math.random() * pool.length)];
-                        window.open(`https://codeforces.com/problemset/problem/${randomP.contestId}/${randomP.index}`, '_blank');
-                      }
-                    });
-                }}
-                style={{ justifyContent: 'center', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', cursor: 'pointer' }}
-              >
-                Solve Random CF Problem
-              </button>
-              <a href="https://codeforces.com/problemset" target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center' }}>
-                Browse CF Problemset
-              </a>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
+                Generate a completely random Codeforces problem specifically tagged as {currentTopic} to build raw problem-solving speed.
+              </p>
+              <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
+                <button 
+                  className="learn-btn" 
+                  onClick={() => {
+                    fetch(`https://codeforces.com/api/problemset.problems?tags=${cfTag}`)
+                      .then(res => res.json())
+                      .then(apiData => {
+                        if (apiData.status === 'OK' && apiData.result.problems.length > 0) {
+                          const validProblems = apiData.result.problems.filter(p => p.rating >= 1000 && p.rating <= 1600);
+                          const pool = validProblems.length > 0 ? validProblems : apiData.result.problems;
+                          const randomP = pool[Math.floor(Math.random() * pool.length)];
+                          window.open(`https://codeforces.com/problemset/problem/${randomP.contestId}/${randomP.index}`, '_blank');
+                        } else {
+                           alert('No CF problems found for this specific tag combination. Try browsing the general problemset.');
+                        }
+                      });
+                  }}
+                  style={{ justifyContent: 'center', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', cursor: 'pointer' }}
+                >
+                  Random CF: {currentTopic}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     );
   };
