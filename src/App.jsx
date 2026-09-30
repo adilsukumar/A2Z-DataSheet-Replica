@@ -175,6 +175,10 @@ function App() {
     setNotes(prev => ({ ...prev, [id]: text }));
   };
 
+  const deleteChallenge = (id) => {
+    setChallengeLog(prev => prev.filter(c => c.id !== id));
+  };
+
   const getStepProgress = (stepN) => {
     const stepProblems = problems.filter(p => p.step === stepN);
     const solvedCount = stepProblems.filter(p => solved.has(p.id)).length;
@@ -584,16 +588,25 @@ function App() {
                 <button 
                   className="learn-btn" 
                   onClick={() => {
-                    const newLog = {
-                      id: `challenge-${Date.now()}`,
-                      platform: 'leetcode',
-                      topic: currentTopic,
-                      title: `LeetCode Practice: ${currentTopic}`,
-                      url: lcTag ? `https://leetcode.com/problemset/all/?topicSlugs=${lcTag}` : 'https://leetcode.com/problemset/all/',
-                      date: getLocalDateString()
-                    };
-                    setChallengeLog([newLog, ...challengeLog]);
-                    window.open(newLog.url, '_blank');
+                    const topicProblems = problems.filter(p => p.topic === currentTopic && p.platform === 'leetcode');
+                    const unsolvedLC = topicProblems.filter(p => !solved.has(p.id) && !challengeLog.some(c => c.title === p.title));
+                    const pool = unsolvedLC.length > 0 ? unsolvedLC : topicProblems;
+                    
+                    if (pool.length > 0) {
+                      const randomP = pool[Math.floor(Math.random() * pool.length)];
+                      const newLog = {
+                        id: `challenge-${Date.now()}`,
+                        platform: 'leetcode',
+                        topic: currentTopic,
+                        title: randomP.title,
+                        url: randomP.link,
+                        date: getLocalDateString()
+                      };
+                      setChallengeLog([newLog, ...challengeLog]);
+                      window.open(newLog.url, '_blank');
+                    } else {
+                      alert(`No LeetCode problems found for the topic "${currentTopic}" in the A2Z dataset. Try generating a Codeforces challenge instead!`);
+                    }
                   }}
                   style={{ justifyContent: 'center', background: 'rgba(255,161,22,0.1)', color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)', cursor: 'pointer' }}
                 >
@@ -691,13 +704,22 @@ function App() {
                             <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>{log.topic}</span>
                           </div>
                         </div>
-                        <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                        <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px', alignItems: 'center' }}>
                           <a href={log.url} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: log.platform === 'leetcode' ? '#FFA116' : '#ef4444', borderColor: log.platform === 'leetcode' ? 'rgba(255,161,22,0.3)' : 'rgba(239,68,68,0.3)', background: log.platform === 'leetcode' ? 'rgba(255,161,22,0.05)' : 'rgba(239,68,68,0.05)'}}>
                             {log.platform === 'leetcode' ? 'Solve on LeetCode' : 'Solve Real CF Problem'}
                           </a>
                           <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', alignSelf: 'center', marginLeft: 'auto' }}>
                             Added: {log.date}
                           </span>
+                          <button 
+                            onClick={() => deleteChallenge(log.id)}
+                            style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px', display: 'flex', alignItems: 'center', opacity: 0.7 }}
+                            title="Remove from Backlog"
+                            onMouseOver={(e) => e.currentTarget.style.opacity = 1}
+                            onMouseOut={(e) => e.currentTarget.style.opacity = 0.7}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          </button>
                         </div>
                       </div>
                     </div>
