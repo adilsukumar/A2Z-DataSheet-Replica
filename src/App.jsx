@@ -123,6 +123,7 @@ function App() {
   const [notes, setNotes] = useState(() => safeJSONParse('a2z-notes', {}));
   const [streak, setStreak] = useState(() => safeJSONParse('a2z-streak', { current: 0, lastDate: null }));
   const [dailyState, setDailyState] = useState(() => safeJSONParse('a2z-daily', null));
+  const [challengeLog, setChallengeLog] = useState(() => safeJSONParse('a2z-challenges', []));
 
   const { problems } = data;
   const steps = data.meta.steps || [];
@@ -133,6 +134,7 @@ function App() {
   useEffect(() => localStorage.setItem('a2z-review', JSON.stringify(Array.from(review))), [review]);
   useEffect(() => localStorage.setItem('a2z-notes', JSON.stringify(notes)), [notes]);
   useEffect(() => localStorage.setItem('a2z-streak', JSON.stringify(streak)), [streak]);
+  useEffect(() => localStorage.setItem('a2z-challenges', JSON.stringify(challengeLog)), [challengeLog]);
 
   // Streak logic
   const updateStreak = () => {
@@ -489,88 +491,15 @@ function App() {
               </div>
             )}
 
-            <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)'}}>
+            <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
               📚 <strong>Phase 1:</strong> Learn the concept, watch videos, and solve {dailyProblems.length} A2Z problem{dailyProblems.length > 1 ? 's' : ''}.
             </div>
             {renderProblemList(dailyProblems)}
             
-            <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
-              ⚡ <strong>Phase 2:</strong> Solve 1 LeetCode and 1 Codeforces problem on this topic to build raw speed.
-            </div>
-            
-            <div className="problem-list">
-              {/* LeetCode Row */}
-              <div className="problem-row" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                <div style={{ display: 'flex' }}>
-                  <div className="checkbox-container">
-                    <input 
-                      type="checkbox" 
-                      className="custom-checkbox"
-                      checked={solved.has(lcId)}
-                      onChange={() => toggleSolved(lcId)}
-                    />
-                  </div>
-                  <div className="problem-info" style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="problem-title">
-                        LeetCode Practice: {dailyState.topic}
-                      </div>
-                      <div className="problem-badges">
-                        <span className="badge" style={{ background: '#FFA11620', color: '#FFA116', borderColor: '#FFA116' }}>LeetCode</span>
-                      </div>
-                    </div>
-                    <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                      <a href={getLCTag(dailyState.topic) ? `https://leetcode.com/problemset/all/?topicSlugs=${getLCTag(dailyState.topic)}` : 'https://leetcode.com/problemset/all/'} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)', background: 'rgba(255,161,22,0.05)'}}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8h1a4 4 0 0 1 0 8h-1"></path><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path><line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line></svg> Browse {dailyState.topic} on LeetCode
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Codeforces Row */}
-              <div className="problem-row" style={{ background: 'rgba(255,255,255,0.02)' }}>
-                <div style={{ display: 'flex' }}>
-                  <div className="checkbox-container">
-                    <input 
-                      type="checkbox" 
-                      className="custom-checkbox"
-                      checked={solved.has(cfId)}
-                      onChange={() => toggleSolved(cfId)}
-                    />
-                  </div>
-                  <div className="problem-info" style={{ width: '100%' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div className="problem-title">
-                        {dailyState.cfProblem ? dailyState.cfProblem.name : `Codeforces Practice: ${dailyState.topic}`}
-                      </div>
-                      <div className="problem-badges">
-                        {dailyState.cfProblem && dailyState.cfProblem.rating && (
-                          <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>Rating: {dailyState.cfProblem.rating}</span>
-                        )}
-                        <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: '#ef4444' }}>Codeforces</span>
-                      </div>
-                    </div>
-                    <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
-                      {dailyState.cfProblem ? (
-                        <a href={`https://codeforces.com/problemset/problem/${dailyState.cfProblem.contestId}/${dailyState.cfProblem.index}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
-                          <CodeforcesIcon /> Solve Real CF Problem
-                        </a>
-                      ) : (
-                        <a href={`https://codeforces.com/problemset?tags=${dailyState.cfTag}`} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.05)'}}>
-                          <CodeforcesIcon /> Loading CF Problem...
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {reviewProblem && (
               <>
                 <div style={{ padding: '20px 24px', color: 'var(--text-secondary)', fontSize: '0.9rem', borderBottom: '1px solid rgba(255,255,255,0.05)', borderTop: '1px solid rgba(255,255,255,0.05)'}}>
-                  🔁 <strong>Phase 3:</strong> Review an old problem to retain mastery.
+                  🔁 <strong>Phase 2:</strong> Review an old problem to retain mastery.
                 </div>
                 {renderProblemList([reviewProblem])}
               </>
@@ -652,9 +581,24 @@ function App() {
                 Ran out of {currentTopic} questions in the roadmap? Or just want extra daily practice? Jump into LeetCode's archive.
               </p>
               <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
-                <a href={lcTag ? `https://leetcode.com/problemset/all/?topicSlugs=${lcTag}` : 'https://leetcode.com/problemset/all/'} target="_blank" rel="noreferrer" className="learn-btn" style={{ justifyContent: 'center', background: 'rgba(255,161,22,0.1)', color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)' }}>
-                  Browse {currentTopic} on LeetCode
-                </a>
+                <button 
+                  className="learn-btn" 
+                  onClick={() => {
+                    const newLog = {
+                      id: `challenge-${Date.now()}`,
+                      platform: 'leetcode',
+                      topic: currentTopic,
+                      title: `LeetCode Practice: ${currentTopic}`,
+                      url: lcTag ? `https://leetcode.com/problemset/all/?topicSlugs=${lcTag}` : 'https://leetcode.com/problemset/all/',
+                      date: getLocalDateString()
+                    };
+                    setChallengeLog([newLog, ...challengeLog]);
+                    window.open(newLog.url, '_blank');
+                  }}
+                  style={{ justifyContent: 'center', background: 'rgba(255,161,22,0.1)', color: '#FFA116', borderColor: 'rgba(255,161,22,0.3)', cursor: 'pointer' }}
+                >
+                  Generate LeetCode Challenge
+                </button>
               </div>
             </div>
 
@@ -666,7 +610,7 @@ function App() {
                 <h3 style={{ margin: 0, fontSize: '1.2rem' }}>Codeforces: {currentTopic}</h3>
               </div>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '24px', flex: 1 }}>
-                Generate a completely random Codeforces problem specifically tagged as {currentTopic} to build raw problem-solving speed.
+                Generate a random Codeforces problem specifically tagged as {currentTopic} to build raw problem-solving speed.
               </p>
               <div style={{ display: 'flex', gap: '12px', flexDirection: 'column' }}>
                 <button 
@@ -679,7 +623,18 @@ function App() {
                           const validProblems = apiData.result.problems.filter(p => p.rating >= 1000 && p.rating <= 1600);
                           const pool = validProblems.length > 0 ? validProblems : apiData.result.problems;
                           const randomP = pool[Math.floor(Math.random() * pool.length)];
-                          window.open(`https://codeforces.com/problemset/problem/${randomP.contestId}/${randomP.index}`, '_blank');
+                          
+                          const newLog = {
+                            id: `challenge-${Date.now()}`,
+                            platform: 'codeforces',
+                            topic: currentTopic,
+                            title: randomP.name,
+                            url: `https://codeforces.com/problemset/problem/${randomP.contestId}/${randomP.index}`,
+                            date: getLocalDateString(),
+                            rating: randomP.rating
+                          };
+                          setChallengeLog([newLog, ...challengeLog]);
+                          window.open(newLog.url, '_blank');
                         } else {
                            alert('No CF problems found for this specific tag combination. Try browsing the general problemset.');
                         }
@@ -687,12 +642,71 @@ function App() {
                   }}
                   style={{ justifyContent: 'center', background: 'rgba(239,68,68,0.1)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)', cursor: 'pointer' }}
                 >
-                  Random CF: {currentTopic}
+                  Generate Codeforces Challenge
                 </button>
               </div>
             </div>
           </div>
         )}
+
+        <div style={{ marginTop: '40px' }}>
+          <div className="main-header" style={{ marginBottom: '16px' }}>
+            <h2 style={{ fontSize: '1.4rem' }}>My Challenge Backlog</h2>
+            <p>Track the out-of-roadmap challenges you generate here. Take as many days as you need to solve them.</p>
+          </div>
+          
+          {challengeLog.length === 0 ? (
+            <div style={{ padding: '24px', textAlign: 'center', color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+              No challenges generated yet. Click the buttons above to add one to your backlog!
+            </div>
+          ) : (
+            <div className="problem-list" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+              {challengeLog.map(log => {
+                const isSolved = solved.has(log.id);
+                return (
+                  <div key={log.id} className={`problem-row ${isSolved ? 'solved' : ''}`} style={{ background: 'rgba(255,255,255,0.02)' }}>
+                    <div style={{ display: 'flex' }}>
+                      <div className="checkbox-container">
+                        <input 
+                          type="checkbox" 
+                          className="custom-checkbox"
+                          checked={isSolved}
+                          onChange={() => toggleSolved(log.id)}
+                        />
+                      </div>
+                      <div className="problem-info" style={{ width: '100%' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div className="problem-title">
+                            {log.title}
+                          </div>
+                          <div className="problem-badges">
+                            {log.rating && (
+                              <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>Rating: {log.rating}</span>
+                            )}
+                            {log.platform === 'leetcode' ? (
+                              <span className="badge" style={{ background: '#FFA11620', color: '#FFA116', borderColor: '#FFA116' }}>LeetCode</span>
+                            ) : (
+                              <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderColor: '#ef4444' }}>Codeforces</span>
+                            )}
+                            <span className="badge" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>{log.topic}</span>
+                          </div>
+                        </div>
+                        <div className="learning-actions" style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                          <a href={log.url} target="_blank" rel="noreferrer" className="learn-btn practice" style={{ color: log.platform === 'leetcode' ? '#FFA116' : '#ef4444', borderColor: log.platform === 'leetcode' ? 'rgba(255,161,22,0.3)' : 'rgba(239,68,68,0.3)', background: log.platform === 'leetcode' ? 'rgba(255,161,22,0.05)' : 'rgba(239,68,68,0.05)'}}>
+                            {log.platform === 'leetcode' ? 'Solve on LeetCode' : 'Solve Real CF Problem'}
+                          </a>
+                          <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', alignSelf: 'center', marginLeft: 'auto' }}>
+                            Added: {log.date}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     );
   };
